@@ -312,5 +312,35 @@ elasticsearch:
 }
 ```
 
+# elasticsearch sync version and log
 
+you can implement the interface `ESVersionService` to handle the elasticsearch sync version and log.
 
+- `version`:
+```
+public class ESVersionBean {
+    private String index;// elasearch index
+    private String id;// document id
+    private Long seqNo;// elasearch seqNo
+    private Long primaryTerm;// elasearch primaryTerm
+    }
+```
+- `version log`:
+```
+public class ESVersionLogBean {
+    private String index;// elasearch index
+    private String id;// document id
+    private Long seqNo;// elasearch seqNo
+    private Long primaryTerm;// elasearch primaryTerm
+    private Long lid;// execute id
+    private String context;//request data
+    private String message;// failed message
+    private Integer status;// 0:success; 1:failed; -1:not executed
+```
+- `esVersion Service`:
+```
+public interface ESVersionService {
+    Integer replaceList(List<ESVersionBean> var1);// save/update version
+    Integer insertLogList(List<ESVersionLogBean> var1);// save log
+}
+```
