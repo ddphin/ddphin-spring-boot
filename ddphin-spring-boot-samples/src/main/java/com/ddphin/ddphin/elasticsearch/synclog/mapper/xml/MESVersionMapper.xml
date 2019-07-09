@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ddphin.ddphin.elasticsearch.synclog.mapper.ESVersionMapper">
+
+	<insert id="replaceList" parameterType="ESVersionBean">
+		replace into es_version (
+			     `index`
+			   , `id`
+			   , `seqNo`
+			   , `primaryTerm`)
+		values
+		<foreach collection="list" item="item" index="index" separator=",">
+		       (
+				 #{item.index}
+			   , #{item.id}
+			   , #{item.seqNo}
+			   , #{item.primaryTerm})
+		</foreach>
+	</insert>
+
+	<insert id="insertLogList" parameterType="ESVersionLogBean">
+		insert into es_version_log (
+				 `index`
+			   , `id`
+			   , `context`
+			   , `lid`
+			   , `message`
+			   , `status`
+			   , `seqNo`
+			   , `primaryTerm`)
+		values
+		<foreach collection="list" item="item" index="index" separator=",">
+			   (
+			     #{item.index}
+			   , #{item.id}
+			   , #{item.context}
+			   , #{item.lid}
+			   , #{item.message}
+			   , #{item.status}
+			   , #{item.seqNo}
+			   , #{item.primaryTerm})
+		</foreach>
+	</insert>
+
+</mapper>

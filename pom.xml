@@ -59,9 +59,9 @@
     <modules>
         <module>ddphin-spring-boot-starter</module>
         <module>ddphin-spring-boot-autoconfigure</module>
-        <!--
+
         <module>ddphin-spring-boot-samples</module>
-        -->
+
     </modules>
 
     <properties>

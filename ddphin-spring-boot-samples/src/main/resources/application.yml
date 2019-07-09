@@ -1,0 +1,228 @@
+server:
+  servlet:
+    context-path: /cdd #设置项目ContextPath
+  port: 8080 #设置Tomcat端口，默认8080
+  tomcat:
+    uri-encoding: UTF-8 #设置Tomcat编码
+
+spring:
+  ## 1. DB
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://120.77.218.60:3306/CDD_BIZ_COMMODITY?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false&zeroDateTimeBehavior=convertToNull
+    username: cdd_biz_commodity
+    password: iCDD2019
+
+    ## 2. Druid datasource
+    hikari:
+    minimum-idle: 5
+    maximum-pool-size: 15
+    auto-commit: true
+    idle-timeout: 30000
+    pool-name: DatebookHikariCP
+    max-lifetime: 1800000
+    connection-timeout: 30000
+    connection-test-query: SELECT 1
+
+## 4. Mybatis entity
+mybatis:
+  mapper-locations:
+    classpath*:net/babywoo/cdd/**/mapper/xml/*Mapper.xml
+  type-aliases-package:
+    net.babywoo.cdd.business.commodity.model,
+    net.babywoo.cdd.business.commodity.bean,
+    com.ddphin.ddphin.synchronizer.model,
+    com.ddphin.ddphin.synchronizer.bean
+
+## ES
+elasticsearch:
+  repo:
+    host: 47.106.8.8
+    port: 9200
+    scheme: http
+  sync:
+    api:
+      - '/**'
+    point:
+      INSERT: AFTER
+      UPDATE: AFTER
+      DELETE: BEFORE
+    input:
+      net.babywoo.cdd.business.commodity.mapper.MSpuMapper: spu
+      net.babywoo.cdd.business.commodity.mapper.MSpuStockMapper: spu_stock
+      net.babywoo.cdd.business.commodity.mapper.MSpuMarkMapper: spu_mark
+      net.babywoo.cdd.business.commodity.mapper.MSpuLabelMapper: spu_label
+      net.babywoo.cdd.business.commodity.mapper.MSpuPlatformMapper: spu_plarform
+      net.babywoo.cdd.business.commodity.mapper.MSpuServiceMapper: spu_service
+      net.babywoo.cdd.business.commodity.mapper.MSkuMapper: sku
+      net.babywoo.cdd.business.commodity.mapper.MSkuParaMapper: sku_para
+      net.babywoo.cdd.business.commodity.mapper.MSkuStockMapper: sku_stock
+
+    output:
+      spu:
+        key: id
+        map:
+          id: id
+          cid: cid
+          bid: bid
+          status: status
+          summary: summary
+          pic: pic
+          shows: shows
+          marketDate: marketDate
+        has:
+          sku:
+            with-type: nested
+            as: sku
+            unique-by: id
+          spu_label:
+            with-type: array
+            as: label
+          spu_platform:
+            with-type: array
+            as: platform
+          spu_service:
+            with-type: array
+            as: service
+          spu_mark:
+            with-type: primitive
+          spu_stock:
+            with-type: primitive
+
+      spu_mark:
+        association:
+          belongs:
+            to: spu
+            with: spuid
+            as: id
+          on-missing:
+            query: query
+            with: id
+        key: spuid
+        map:
+          mark: mark
+
+      spu_stock:
+        association:
+          belongs:
+            to: spu
+            with: spuid
+            as: id
+          on-missing:
+            query: query
+            with: id
+        reload:
+          query: query
+          with: spuid
+        key: spuid
+        map:
+          sales: sales
+          praise: praise
+          comment: comment
+          poor: poor
+
+      spu_label:
+        association:
+          belongs:
+            to: spu
+            with: spuid
+            as: id
+          on-missing:
+            query: query
+            with: id
+        key: id
+        map:
+          lid: lid
+
+      spu_platform:
+        association:
+          belongs:
+            to: spu
+            with: spuid
+            as: id
+          on-missing:
+            query: query
+            with: id
+        key: id
+        map:
+          type: type
+
+      spu_service:
+        key: id
+        map:
+          sid: sid
+        association:
+          belongs:
+            to: spu
+            with: spuid
+            as: id
+          on-missing:
+            query: query
+            with: id
+
+      sku:
+        key: id
+        map:
+          id: id
+          title: title
+          mprice: mprice
+          pprice: pprice
+          vprice: vprice
+        has:
+          sku_stock:
+            with-type: primitive
+          sku_para:
+            with-type: nested
+            as: para
+            unique-by: pid
+        association:
+          belongs:
+            to: spu
+            with: spuid
+            as: id
+          on-missing:
+            query: query
+            with: id
+
+      sku_stock:
+        key: skuid
+        map:
+          inventory: inventory
+        association:
+          belongs:
+            to: sku
+            with: skuid
+            as: id
+          on-missing:
+            query: query
+            with: id
+        reload:
+          query: query
+          with: skuid
+
+      sku_para:
+        key: id
+        map:
+          pid: pid
+          vid: vid
+        association:
+          belongs:
+            to: sku
+            with: sid
+            as: id
+          on-missing:
+            query: query
+            with: id
+
+
+## OSS
+ali:
+  oss:
+    endpoint: oss-cn-shenzhen.aliyuncs.com
+    appKeyId: LTAIkhGkNauQxh6f
+    appKeySecret:  UfWkYORzODpMj6ZkAeIgPD4bjfdnMs
+    imgBucket: cdd-share
+    imgHome: image
+    imgCdn:
+
