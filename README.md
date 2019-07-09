@@ -347,6 +347,7 @@ public interface ESVersionService {
 
 # handler the request body
 `ddphin` will collect data and convert the whole data to bulk request body, you can implement `BulkRequestBodyTransmitor` to handler the request body, such as transmit it to message queue.
+by default, ddphin transmit the request body to elasticsearch with bulk processor directly if you have config the `elasticsearch.repo`.
 - `BulkRequestBodyTransmitor`:
 ```
 public interface BulkRequestBodyTransmitor {
