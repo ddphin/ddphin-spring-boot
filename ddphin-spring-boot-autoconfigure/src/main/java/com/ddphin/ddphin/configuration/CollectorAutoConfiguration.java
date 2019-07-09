@@ -94,7 +94,6 @@ public class CollectorAutoConfiguration implements WebMvcConfigurer {
                     .setBulkSize(new ByteSizeValue(5, ByteSizeUnit.MB))
                     .setFlushInterval(TimeValue.timeValueSeconds(5))
                     .setConcurrentRequests(1)
-                    .setBackoffPolicy(BackoffPolicy.exponentialBackoff(TimeValue.timeValueMillis(1000), 3))
                     .build();
 
             ESRequester esRequester = new DefaultESRequester(bulkProcessor);
