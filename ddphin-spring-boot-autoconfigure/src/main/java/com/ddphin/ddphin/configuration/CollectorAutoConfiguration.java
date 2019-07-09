@@ -93,6 +93,7 @@ public class CollectorAutoConfiguration implements WebMvcConfigurer {
                     .setBulkActions(1000)
                     .setBulkSize(new ByteSizeValue(5, ByteSizeUnit.MB))
                     .setFlushInterval(TimeValue.timeValueSeconds(5))
+                    .setBackoffPolicy(BackoffPolicy.exponentialBackoff(TimeValue.timeValueMillis(100), 3))
                     .setConcurrentRequests(1)
                     .build();
 
