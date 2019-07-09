@@ -66,6 +66,16 @@ public class CollectorAutoConfiguration implements WebMvcConfigurer {
         return new ESSyncProperties();
     }
 
+    @Bean
+    public RestHighLevelClient esclient() {
+        ESClientProperties esproperties = this.esClientProperties();
+        RestHighLevelClient client = new RestHighLevelClient(
+                RestClient.builder(
+                        new HttpHost(
+                                esproperties.getHost(), esproperties.getPort(), esproperties.getScheme())));
+        return client;
+    }
+
     @PostConstruct
     public void addCollector() {
         ESSyncProperties properties = this.esSyncProperties();
@@ -81,14 +91,8 @@ public class CollectorAutoConfiguration implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         if (null != this.esSyncProperties().getApi() && !this.esSyncProperties().getApi().isEmpty()) {
-            ESClientProperties esproperties = this.esClientProperties();
-            RestHighLevelClient client = new RestHighLevelClient(
-                    RestClient.builder(
-                            new HttpHost(
-                                    esproperties.getHost(), esproperties.getPort(), esproperties.getScheme())));
-
             BulkProcessor bulkProcessor = BulkProcessor.builder(
-                    (request, bulkListener) -> client.bulkAsync(request, RequestOptions.DEFAULT, bulkListener),
+                    (request, bulkListener) -> this.esclient().bulkAsync(request, RequestOptions.DEFAULT, bulkListener),
                     new EBulkProcessorListener(esVersionService))
                     .setBulkActions(1000)
                     .setBulkSize(new ByteSizeValue(5, ByteSizeUnit.MB))
