@@ -316,7 +316,7 @@ elasticsearch:
 
 you can implement the interface `ESVersionService` to handle the elasticsearch sync version and log.
 
-- `version`:
+- `version`: just for success case
 ```
 public class ESVersionBean {
     private String index;// elasearch index
@@ -325,7 +325,7 @@ public class ESVersionBean {
     private Long primaryTerm;// elasearch primaryTerm
     }
 ```
-- `version log`:
+- `version log`: for every case
 ```
 public class ESVersionLogBean {
     private String index;// elasearch index
