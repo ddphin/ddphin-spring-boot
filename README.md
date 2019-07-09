@@ -344,3 +344,12 @@ public interface ESVersionService {
     Integer insertLogList(List<ESVersionLogBean> var1);// save log
 }
 ```
+
+# handler the request body
+`ddphin` will collect data and convert the whole data to bulk request body, you can implement `BulkRequestBodyTransmitor` to handler the request body, such as transmit it to message queue.
+- `BulkRequestBodyTransmitor`:
+```
+public interface BulkRequestBodyTransmitor {
+    void transmit(String var1) throws IOException;
+}
+```
