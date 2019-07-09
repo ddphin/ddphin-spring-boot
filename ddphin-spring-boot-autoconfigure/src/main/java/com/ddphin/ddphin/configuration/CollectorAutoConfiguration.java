@@ -52,6 +52,8 @@ public class CollectorAutoConfiguration implements WebMvcConfigurer {
 
     @Autowired(required = false)
     private ESVersionService esVersionService;
+    @Autowired(required = false)
+    private BulkRequestBodyTransmitor customizedBulkRequestBodyTransmitor;
 
     @Bean
     @ConfigurationProperties(prefix=ESClientProperties.prefix)
@@ -91,18 +93,21 @@ public class CollectorAutoConfiguration implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         if (null != this.esSyncProperties().getApi() && !this.esSyncProperties().getApi().isEmpty()) {
-            BulkProcessor bulkProcessor = BulkProcessor.builder(
-                    (request, bulkListener) -> this.esclient().bulkAsync(request, RequestOptions.DEFAULT, bulkListener),
-                    new EBulkProcessorListener(esVersionService))
-                    .setBulkActions(1000)
-                    .setBulkSize(new ByteSizeValue(5, ByteSizeUnit.MB))
-                    .setFlushInterval(TimeValue.timeValueSeconds(5))
-                    .setBackoffPolicy(BackoffPolicy.exponentialBackoff(TimeValue.timeValueMillis(100), 3))
-                    .setConcurrentRequests(1)
-                    .build();
+            BulkRequestBodyTransmitor bulkRequestBodyTransmitor = this.customizedBulkRequestBodyTransmitor;
+            if (null == bulkRequestBodyTransmitor) {
+                BulkProcessor bulkProcessor = BulkProcessor.builder(
+                        (request, bulkListener) -> this.esclient().bulkAsync(request, RequestOptions.DEFAULT, bulkListener),
+                        new EBulkProcessorListener(esVersionService))
+                        .setBulkActions(1000)
+                        .setBulkSize(new ByteSizeValue(5, ByteSizeUnit.MB))
+                        .setFlushInterval(TimeValue.timeValueSeconds(5))
+                        .setBackoffPolicy(BackoffPolicy.exponentialBackoff(TimeValue.timeValueMillis(100), 3))
+                        .setConcurrentRequests(1)
+                        .build();
 
-            ESRequester esRequester = new DefaultESRequester(bulkProcessor);
-            BulkRequestBodyTransmitor bulkRequestBodyTransmitor = new DefaultBulkRequestBodyTransmitor(esRequester);
+                ESRequester esRequester = new DefaultESRequester(bulkProcessor);
+                bulkRequestBodyTransmitor = new DefaultBulkRequestBodyTransmitor(esRequester);
+            }
             RequestBodyBuilder requestBodyBuilder = new DefaultRequestBodyBuilder(this.esSyncProperties());
             SynchronizerInterceptor synchronizerInterceptor = new SynchronizerInterceptor(requestBodyBuilder, bulkRequestBodyTransmitor);
 
