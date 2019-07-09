@@ -44,7 +44,7 @@ import javax.annotation.PostConstruct;
 import java.util.List;
 
 @Configuration
-@ConditionalOnBean({SqlSessionFactory.class, ESVersionService.class})
+@ConditionalOnBean({SqlSessionFactory.class})
 @AutoConfigureAfter(MybatisAutoConfiguration.class)
 public class CollectorAutoConfiguration implements WebMvcConfigurer {
     @Autowired
