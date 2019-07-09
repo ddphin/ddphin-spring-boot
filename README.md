@@ -1,6 +1,11 @@
-# ddphin-spring-boot
 ## Collect the complex data and sync to elasticsearch intrusivly and automaticly.
-
+```
+        <dependency>
+            <groupId>com.ddphin</groupId>
+            <artifactId>ddphin-spring-boot-starter</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+```
 ## Elasticsearch Configuration
 
 add the configuration to your application.yml
