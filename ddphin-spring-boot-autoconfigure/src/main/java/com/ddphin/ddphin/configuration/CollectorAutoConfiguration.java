@@ -13,12 +13,12 @@ import com.ddphin.ddphin.collector.entity.ESSyncProperties;
 import com.ddphin.ddphin.collector.interceptor.CollectorInterceptor;
 import com.ddphin.ddphin.collector.interceptor.SynchronizerInterceptor;
 import com.ddphin.ddphin.collector.requestbody.RequestBodyBuilder;
-import com.ddphin.ddphin.collector.requestbody.impl.DefaultRequestBodyBuilder;
+import com.ddphin.ddphin.collector.requestbody.impl.DefaultBulkRequestBodyBuilder;
 import com.ddphin.ddphin.synchronizer.listener.EBulkProcessorListener;
 import com.ddphin.ddphin.synchronizer.requester.ESRequester;
 import com.ddphin.ddphin.synchronizer.requester.impl.DefaultESRequester;
 import com.ddphin.ddphin.synchronizer.service.ESVersionService;
-import com.ddphin.ddphin.transmitor.BulkRequestBodyTransmitor;
+import com.ddphin.ddphin.transmitor.RequestBodyTransmitor;
 import com.ddphin.ddphin.transmitor.impl.DefaultBulkRequestBodyTransmitor;
 import org.apache.http.HttpHost;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -53,7 +53,7 @@ public class CollectorAutoConfiguration implements WebMvcConfigurer {
     @Autowired(required = false)
     private ESVersionService esVersionService;
     @Autowired(required = false)
-    private BulkRequestBodyTransmitor customizedBulkRequestBodyTransmitor;
+    private RequestBodyTransmitor customizedRequestBodyTransmitor;
     @Autowired(required = false)
     private RequestBodyBuilder customizedRequestBodyBuilder;
 
@@ -95,8 +95,8 @@ public class CollectorAutoConfiguration implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         if (null != this.esSyncProperties().getApi() && !this.esSyncProperties().getApi().isEmpty()) {
-            BulkRequestBodyTransmitor bulkRequestBodyTransmitor = this.customizedBulkRequestBodyTransmitor;
-            if (null == bulkRequestBodyTransmitor) {
+            RequestBodyTransmitor requestBodyTransmitor = this.customizedRequestBodyTransmitor;
+            if (null == requestBodyTransmitor) {
                 BulkProcessor bulkProcessor = BulkProcessor.builder(
                         (request, bulkListener) -> this.esclient().bulkAsync(request, RequestOptions.DEFAULT, bulkListener),
                         new EBulkProcessorListener(esVersionService))
@@ -108,16 +108,16 @@ public class CollectorAutoConfiguration implements WebMvcConfigurer {
                         .build();
 
                 ESRequester esRequester = new DefaultESRequester(bulkProcessor);
-                bulkRequestBodyTransmitor = new DefaultBulkRequestBodyTransmitor(esRequester);
+                requestBodyTransmitor = new DefaultBulkRequestBodyTransmitor(esRequester);
             }
             RequestBodyBuilder requestBodyBuilder = this.customizedRequestBodyBuilder;
             if (null == requestBodyBuilder) {
-                requestBodyBuilder = new DefaultRequestBodyBuilder(this.esSyncProperties());
+                requestBodyBuilder = new DefaultBulkRequestBodyBuilder(this.esSyncProperties());
             }
             else {
                 requestBodyBuilder.setOutputMap(this.esSyncProperties().getOutput());
             }
-            SynchronizerInterceptor synchronizerInterceptor = new SynchronizerInterceptor(requestBodyBuilder, bulkRequestBodyTransmitor);
+            SynchronizerInterceptor synchronizerInterceptor = new SynchronizerInterceptor(requestBodyBuilder, requestBodyTransmitor);
 
             registry.addInterceptor(synchronizerInterceptor).addPathPatterns(this.esSyncProperties().getApi());
         }

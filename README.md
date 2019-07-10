@@ -316,10 +316,25 @@ elasticsearch:
     }
 }
 ```
-
+# build the request body
+`ddphin` will collect data and convert the whole data to bulk request body by default, your can implement `RequestBodyBuilder` to build it from the collect data `ContextHolder` (which is thread accesssable) as you want.
+```
+public interface RequestBodyBuilder {
+    String build();
+    void setOutputMap(Map<String, ESSyncItemOutputItem> var1);
+}
+``` 
+# handler the request body
+`ddphin` will collect data and convert the whole data to bulk request body, you can implement `BulkRequestBodyTransmitor` to handler the request body, such as transmit it to message queue.
+by default, ddphin transmit the request body to elasticsearch with bulk processor directly if you have config the `elasticsearch.repo`.
+- `BulkRequestBodyTransmitor`:
+```
+public interface RequestBodyTransmitor {
+    void transmit(String var1) throws IOException;
+}
+```
 # elasticsearch sync version and log
-
-you can implement the interface `ESVersionService` to handle the elasticsearch sync version and log.
+if you use the default `BulkRequestBodyBuilder` and `BulkRequestBodyTransmitor`, and you have config the `elasticsearch.repo`, you can implement the interface `ESVersionService` to handle the elasticsearch sync version and log.
 
 - `version`: just for success case
 ```
@@ -347,23 +362,5 @@ public class ESVersionLogBean {
 public interface ESVersionService {
     Integer replaceList(List<ESVersionBean> var1);// save/update version
     Integer insertLogList(List<ESVersionLogBean> var1);// save log
-}
-```
-# build the request body
-`ddphin` will collect data and convert the whole data to bulk request body by default, your can implement `RequestBodyBuilder` to build it from the collect data `ContextHolder` (which is thread accesssable) as you want.
-```
-public interface RequestBodyBuilder {
-    String build();
-    void setOutputMap(Map<String, ESSyncItemOutputItem> var1);
-}
-``` 
-
-# handler the request body
-`ddphin` will collect data and convert the whole data to bulk request body, you can implement `BulkRequestBodyTransmitor` to handler the request body, such as transmit it to message queue.
-by default, ddphin transmit the request body to elasticsearch with bulk processor directly if you have config the `elasticsearch.repo`.
-- `BulkRequestBodyTransmitor`:
-```
-public interface BulkRequestBodyTransmitor {
-    void transmit(String var1) throws IOException;
 }
 ```
