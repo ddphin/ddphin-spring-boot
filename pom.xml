@@ -77,17 +77,17 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>com.ddphin</groupId>
+                <groupId>com.github.ddphin</groupId>
                 <artifactId>ddphin</artifactId>
                 <version>${ddphin.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.ddphin</groupId>
+                <groupId>com.github.ddphin</groupId>
                 <artifactId>ddphin-spring-boot-autoconfigure</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.ddphin</groupId>
+                <groupId>com.github.ddphin</groupId>
                 <artifactId>ddphin-spring-boot-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>

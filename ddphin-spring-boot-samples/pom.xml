@@ -97,7 +97,7 @@
         </dependency>
 
         <dependency>
-            <groupId>com.ddphin</groupId>
+            <groupId>com.github.ddphin</groupId>
             <artifactId>ddphin-spring-boot-starter</artifactId>
             <version>1.0.0</version>
         </dependency>

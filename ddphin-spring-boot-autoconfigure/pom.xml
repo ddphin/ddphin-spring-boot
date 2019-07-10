@@ -38,7 +38,7 @@
     <dependencies>
         <!-- spring-boot-->
         <dependency>
-            <groupId>com.ddphin</groupId>
+            <groupId>com.github.ddphin</groupId>
             <artifactId>ddphin</artifactId>
             <version>1.0.0</version>
         </dependency>

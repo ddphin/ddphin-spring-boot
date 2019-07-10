@@ -53,11 +53,11 @@
 
         <!-- ddphin -->
         <dependency>
-            <groupId>com.ddphin</groupId>
+            <groupId>com.github.ddphin</groupId>
             <artifactId>ddphin</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.ddphin</groupId>
+            <groupId>com.github.ddphin</groupId>
             <artifactId>ddphin-spring-boot-autoconfigure</artifactId>
         </dependency>
     </dependencies>
