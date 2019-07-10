@@ -1,4 +1,4 @@
-## Collect the complex data and sync to elasticsearch intrusivly and automaticly.
+## Collect the complex data and sync to elasticsearch unintrusively and automatically.
 ```
         <dependency>
             <groupId>com.ddphin</groupId>
