@@ -1,7 +1,7 @@
 ## Collect the complex data and sync to elasticsearch unintrusively and automatically.
 ```
         <dependency>
-            <groupId>com.ddphin</groupId>
+            <groupId>com.github.ddphin</groupId>
             <artifactId>ddphin-spring-boot-starter</artifactId>
             <version>1.0.0</version>
         </dependency>
