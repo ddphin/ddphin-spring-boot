@@ -99,7 +99,6 @@
         <dependency>
             <groupId>com.github.ddphin</groupId>
             <artifactId>ddphin-spring-boot-starter</artifactId>
-            <version>1.0.0</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-collections4 -->
