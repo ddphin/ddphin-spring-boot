@@ -54,6 +54,8 @@ public class CollectorAutoConfiguration implements WebMvcConfigurer {
     private ESVersionService esVersionService;
     @Autowired(required = false)
     private BulkRequestBodyTransmitor customizedBulkRequestBodyTransmitor;
+    @Autowired(required = false)
+    private RequestBodyBuilder customizedRequestBodyBuilder;
 
     @Bean
     @ConfigurationProperties(prefix=ESClientProperties.prefix)
@@ -108,7 +110,13 @@ public class CollectorAutoConfiguration implements WebMvcConfigurer {
                 ESRequester esRequester = new DefaultESRequester(bulkProcessor);
                 bulkRequestBodyTransmitor = new DefaultBulkRequestBodyTransmitor(esRequester);
             }
-            RequestBodyBuilder requestBodyBuilder = new DefaultRequestBodyBuilder(this.esSyncProperties());
+            RequestBodyBuilder requestBodyBuilder = this.customizedRequestBodyBuilder;
+            if (null == requestBodyBuilder) {
+                requestBodyBuilder = new DefaultRequestBodyBuilder(this.esSyncProperties());
+            }
+            else {
+                requestBodyBuilder.setOutputMap(this.esSyncProperties().getOutput());
+            }
             SynchronizerInterceptor synchronizerInterceptor = new SynchronizerInterceptor(requestBodyBuilder, bulkRequestBodyTransmitor);
 
             registry.addInterceptor(synchronizerInterceptor).addPathPatterns(this.esSyncProperties().getApi());
