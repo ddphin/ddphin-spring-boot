@@ -349,6 +349,14 @@ public interface ESVersionService {
     Integer insertLogList(List<ESVersionLogBean> var1);// save log
 }
 ```
+# build the request body
+`ddphin` will collect data and convert the whole data to bulk request body by default, your can implement `RequestBodyBuilder` to build it from the collect data `ContextHolder` (which is thread accesssable) as you want.
+```
+public interface RequestBodyBuilder {
+    String build();
+    void setOutputMap(Map<String, ESSyncItemOutputItem> var1);
+}
+``` 
 
 # handler the request body
 `ddphin` will collect data and convert the whole data to bulk request body, you can implement `BulkRequestBodyTransmitor` to handler the request body, such as transmit it to message queue.
