@@ -8,6 +8,7 @@ package com.ddphin.ddphin.configuration;
  */
 
 
+import com.ddphin.ddphin.collector.collector.Collector;
 import com.ddphin.ddphin.collector.collector.impl.DefaultCollector;
 import com.ddphin.ddphin.collector.entity.ESSyncProperties;
 import com.ddphin.ddphin.collector.interceptor.CollectorInterceptor;
@@ -56,6 +57,8 @@ public class CollectorAutoConfiguration implements WebMvcConfigurer {
     private RequestBodyTransmitor customizedRequestBodyTransmitor;
     @Autowired(required = false)
     private RequestBodyBuilder customizedRequestBodyBuilder;
+    @Autowired(required = false)
+    private Collector customizedCollector;
 
     @Bean
     @ConfigurationProperties(prefix=ESClientProperties.prefix)
@@ -84,7 +87,10 @@ public class CollectorAutoConfiguration implements WebMvcConfigurer {
     public void addCollector() {
         ESSyncProperties properties = this.esSyncProperties();
         if (properties.validate()) {
-            DefaultCollector collector = new DefaultCollector(properties);
+            Collector collector = this.customizedCollector;
+            if (null == collector) {
+                collector = new DefaultCollector(properties);
+            }
             CollectorInterceptor interceptor = new CollectorInterceptor(properties, collector);
             for (SqlSessionFactory sqlSessionFactory : sqlSessionFactoryList) {
                 sqlSessionFactory.getConfiguration().addInterceptor(interceptor);

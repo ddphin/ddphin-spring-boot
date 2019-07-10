@@ -6,6 +6,62 @@
             <version>1.0.0</version>
         </dependency>
 ```
+
+# collect the data
+`ddphin` collect the data base on mybatis, by default, you can use the `DefaultCollect` if you config the `elasticsearch.sync.output`, otherwise, you can implement `Collector` to collect the data as you want. 
+```
+public interface Collector {
+    void collect(Object var1, String var2, Executor var3, MappedStatement var4) throws SQLException;
+}
+```
+# build the request body
+`ddphin` will collect data and convert the whole data to bulk request body by default, your can implement `RequestBodyBuilder` to build it from the collect data `ContextHolder` (which is thread accesssable) as you want.
+```
+public interface RequestBodyBuilder {
+    String build();
+    void setOutputMap(Map<String, ESSyncItemOutputItem> var1);
+}
+``` 
+# handler the request body
+`ddphin` will collect data and convert the whole data to bulk request body, you can implement `BulkRequestBodyTransmitor` to handler the request body, such as transmit it to message queue.
+by default, ddphin transmit the request body to elasticsearch with bulk processor directly if you have config the `elasticsearch.repo`.
+- `BulkRequestBodyTransmitor`:
+```
+public interface RequestBodyTransmitor {
+    void transmit(String var1) throws IOException;
+}
+```
+# elasticsearch sync version and log
+if you use the default `BulkRequestBodyBuilder` and `BulkRequestBodyTransmitor`, and you have config the `elasticsearch.repo`, you can implement the interface `ESVersionService` to handle the elasticsearch sync version and log.
+
+- `version`: just for success case
+```
+public class ESVersionBean {
+    private String index;// elasearch index
+    private String id;// document id
+    private Long seqNo;// elasearch seqNo
+    private Long primaryTerm;// elasearch primaryTerm
+    }
+```
+- `version log`: for every case
+```
+public class ESVersionLogBean {
+    private String index;// elasearch index
+    private String id;// document id
+    private Long seqNo;// elasearch seqNo
+    private Long primaryTerm;// elasearch primaryTerm
+    private Long lid;// execute id
+    private String context;//request data
+    private String message;// failed message
+    private Integer status;// 0:success; 1:failed; -1:not executed
+```
+- `esVersion Service`:
+```
+public interface ESVersionService {
+    Integer replaceList(List<ESVersionBean> var1);// save/update version
+    Integer insertLogList(List<ESVersionLogBean> var1);// save log
+}
+```
 ## Elasticsearch Configuration
 
 add the configuration to your application.yml
@@ -314,53 +370,5 @@ elasticsearch:
             }
         }
     }
-}
-```
-# build the request body
-`ddphin` will collect data and convert the whole data to bulk request body by default, your can implement `RequestBodyBuilder` to build it from the collect data `ContextHolder` (which is thread accesssable) as you want.
-```
-public interface RequestBodyBuilder {
-    String build();
-    void setOutputMap(Map<String, ESSyncItemOutputItem> var1);
-}
-``` 
-# handler the request body
-`ddphin` will collect data and convert the whole data to bulk request body, you can implement `BulkRequestBodyTransmitor` to handler the request body, such as transmit it to message queue.
-by default, ddphin transmit the request body to elasticsearch with bulk processor directly if you have config the `elasticsearch.repo`.
-- `BulkRequestBodyTransmitor`:
-```
-public interface RequestBodyTransmitor {
-    void transmit(String var1) throws IOException;
-}
-```
-# elasticsearch sync version and log
-if you use the default `BulkRequestBodyBuilder` and `BulkRequestBodyTransmitor`, and you have config the `elasticsearch.repo`, you can implement the interface `ESVersionService` to handle the elasticsearch sync version and log.
-
-- `version`: just for success case
-```
-public class ESVersionBean {
-    private String index;// elasearch index
-    private String id;// document id
-    private Long seqNo;// elasearch seqNo
-    private Long primaryTerm;// elasearch primaryTerm
-    }
-```
-- `version log`: for every case
-```
-public class ESVersionLogBean {
-    private String index;// elasearch index
-    private String id;// document id
-    private Long seqNo;// elasearch seqNo
-    private Long primaryTerm;// elasearch primaryTerm
-    private Long lid;// execute id
-    private String context;//request data
-    private String message;// failed message
-    private Integer status;// 0:success; 1:failed; -1:not executed
-```
-- `esVersion Service`:
-```
-public interface ESVersionService {
-    Integer replaceList(List<ESVersionBean> var1);// save/update version
-    Integer insertLogList(List<ESVersionLogBean> var1);// save log
 }
 ```
