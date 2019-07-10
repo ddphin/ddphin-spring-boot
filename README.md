@@ -73,7 +73,7 @@ add the configuration to your application.yml
   - `input`: is a K-V map, the key tells `ddphin` which mybatis will be listened, and the value is the entity corresponds to the mapper.(usually, the mapper is the handler of a single table, and the entity is the data of the table).
   - `output`: is a K-V map, is the relation definition for the whole entity, finally, all the data will be convert to the elasticsearch index mapping base on the `output`configuration.
     - `key`: the entity key, will use to be cache(every mapper has a cache), usually, it is the id.
-    - `map`: map entity column to elasticsearch simple property.
+    - `map`: map entity column to elasticsearch simple property, for elasearch suggestion field( which has input and o optional weight field), the value can be like this: `field.input` and `field.weight`.
     - `has`: is a K-V map, value indicate elasticsearch array property or nested property.
       - `with-type`: `primitive` add the field as the simple property directly.`nested` is the elasticsearch nested property array, `array` is the array of simple property array.
       - `as`: just for `nested` and `array`, is the array name
