@@ -135,15 +135,15 @@ public class CollectorAutoConfiguration {
     @Pointcut("@annotation(org.springframework.web.bind.annotation.PutMapping)")
     public void PutMappingPointcut() {}
     @Around("PostMappingPointcut() || DeleteMappingPointcut() || PutMappingPointcut()")
-    public void doSynchronizerInterceptor(ProceedingJoinPoint joinPoint) throws Throwable {
-        ContextHolder.remove();
+    public Object doSynchronizerInterceptor(ProceedingJoinPoint joinPoint) throws Throwable {
         try {
-            joinPoint.proceed();
+            ContextHolder.remove();
+            Object obj = joinPoint.proceed();
             String body = this.customizedRequestBodyBuilder.build();
             this.customizedRequestBodyTransmitor.transmit(body);
+            return obj;
         } catch (Throwable throwable) {
             throwable.printStackTrace();
-            ContextHolder.remove();
             throw throwable;
         }
         finally {
