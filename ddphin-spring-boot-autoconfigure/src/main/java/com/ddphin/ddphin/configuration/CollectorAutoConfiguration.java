@@ -10,11 +10,11 @@ package com.ddphin.ddphin.configuration;
 
 import com.ddphin.ddphin.collector.collector.Collector;
 import com.ddphin.ddphin.collector.collector.impl.DefaultCollector;
+import com.ddphin.ddphin.collector.context.ContextHolder;
 import com.ddphin.ddphin.collector.entity.ESSyncProperties;
 import com.ddphin.ddphin.collector.requestbody.RequestBodyBuilder;
 import com.ddphin.ddphin.collector.requestbody.impl.DefaultBulkRequestBodyBuilder;
 import com.ddphin.ddphin.interceptor.CollectorInterceptor;
-import com.ddphin.ddphin.interceptor.SynchronizerInterceptor;
 import com.ddphin.ddphin.synchronizer.listener.EBulkProcessorListener;
 import com.ddphin.ddphin.synchronizer.requester.ESRequester;
 import com.ddphin.ddphin.synchronizer.requester.impl.DefaultESRequester;
@@ -23,6 +23,10 @@ import com.ddphin.ddphin.transmitor.RequestBodyTransmitor;
 import com.ddphin.ddphin.transmitor.impl.DefaultBulkRequestBodyTransmitor;
 import org.apache.http.HttpHost;
 import org.apache.ibatis.session.SqlSessionFactory;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Pointcut;
 import org.elasticsearch.action.bulk.BackoffPolicy;
 import org.elasticsearch.action.bulk.BulkProcessor;
 import org.elasticsearch.client.RequestOptions;
@@ -38,16 +42,15 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
 
+@Aspect
 @Configuration
 @ConditionalOnBean({SqlSessionFactory.class})
 @AutoConfigureAfter(MybatisAutoConfiguration.class)
-public class CollectorAutoConfiguration implements WebMvcConfigurer {
+public class CollectorAutoConfiguration {
     @Autowired
     private List<SqlSessionFactory> sqlSessionFactoryList;
 
@@ -98,34 +101,53 @@ public class CollectorAutoConfiguration implements WebMvcConfigurer {
         }
     }
 
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        if (null != this.esSyncProperties().getApi() && !this.esSyncProperties().getApi().isEmpty()) {
-            RequestBodyTransmitor requestBodyTransmitor = this.customizedRequestBodyTransmitor;
-            if (null == requestBodyTransmitor) {
-                BulkProcessor bulkProcessor = BulkProcessor.builder(
-                        (request, bulkListener) -> this.esclient().bulkAsync(request, RequestOptions.DEFAULT, bulkListener),
-                        new EBulkProcessorListener(esVersionService))
-                        .setBulkActions(1000)
-                        .setBulkSize(new ByteSizeValue(5, ByteSizeUnit.MB))
-                        .setFlushInterval(TimeValue.timeValueSeconds(5))
-                        .setBackoffPolicy(BackoffPolicy.exponentialBackoff(TimeValue.timeValueMillis(100), 3))
-                        .setConcurrentRequests(1)
-                        .build();
+    @PostConstruct
+    public void initRequestBodyBuilder() {
+        if (null == this.customizedRequestBodyTransmitor) {
+            BulkProcessor bulkProcessor = BulkProcessor.builder(
+                    (request, bulkListener) -> this.esclient().bulkAsync(request, RequestOptions.DEFAULT, bulkListener),
+                    new EBulkProcessorListener(esVersionService))
+                    .setBulkActions(1000)
+                    .setBulkSize(new ByteSizeValue(5, ByteSizeUnit.MB))
+                    .setFlushInterval(TimeValue.timeValueSeconds(5))
+                    .setBackoffPolicy(BackoffPolicy.exponentialBackoff(TimeValue.timeValueMillis(100), 3))
+                    .setConcurrentRequests(1)
+                    .build();
 
-                ESRequester esRequester = new DefaultESRequester(bulkProcessor);
-                requestBodyTransmitor = new DefaultBulkRequestBodyTransmitor(esRequester);
-            }
-            RequestBodyBuilder requestBodyBuilder = this.customizedRequestBodyBuilder;
-            if (null == requestBodyBuilder) {
-                requestBodyBuilder = new DefaultBulkRequestBodyBuilder(this.esSyncProperties());
-            }
-            else {
-                requestBodyBuilder.setOutputMap(this.esSyncProperties().getOutput());
-            }
-            SynchronizerInterceptor synchronizerInterceptor = new SynchronizerInterceptor(requestBodyBuilder, requestBodyTransmitor);
+            ESRequester esRequester = new DefaultESRequester(bulkProcessor);
+            this.customizedRequestBodyTransmitor = new DefaultBulkRequestBodyTransmitor(esRequester);
+        }
+    }
+    @PostConstruct
+    public void initRequestBodyTransmitor() {
+        if (null == this.customizedRequestBodyBuilder) {
+            this.customizedRequestBodyBuilder = new DefaultBulkRequestBodyBuilder(this.esSyncProperties());
+        }
+        else {
+            this.customizedRequestBodyBuilder.setOutputMap(this.esSyncProperties().getOutput());
+        }
+    }
 
-            registry.addInterceptor(synchronizerInterceptor).addPathPatterns(this.esSyncProperties().getApi());
+    @Pointcut("@annotation(org.springframework.web.bind.annotation.PostMapping)")
+    public void PostMappingPointcut() {}
+    @Pointcut("@annotation(org.springframework.web.bind.annotation.DeleteMapping)")
+    public void DeleteMappingPointcut() {}
+    @Pointcut("@annotation(org.springframework.web.bind.annotation.PutMapping)")
+    public void PutMappingPointcut() {}
+    @Around("PostMappingPointcut() || DeleteMappingPointcut() || PutMappingPointcut()")
+    public void doSynchronizerInterceptor(ProceedingJoinPoint joinPoint) throws Throwable {
+        ContextHolder.remove();
+        try {
+            joinPoint.proceed();
+            String body = this.customizedRequestBodyBuilder.build();
+            this.customizedRequestBodyTransmitor.transmit(body);
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+            ContextHolder.remove();
+            throw throwable;
+        }
+        finally {
+            ContextHolder.remove();
         }
     }
 }

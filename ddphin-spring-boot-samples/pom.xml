@@ -29,7 +29,7 @@
     <parent>
         <groupId>com.github.ddphin</groupId>
         <artifactId>ddphin-spring-boot</artifactId>
-        <version>1.2.1</version>
+        <version>1.2.2</version>
     </parent>
 
     <artifactId>ddphin-spring-boot-samples</artifactId>
