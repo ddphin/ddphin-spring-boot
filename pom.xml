@@ -66,7 +66,7 @@
 
     <properties>
         <spring-boot.version>2.1.5.RELEASE</spring-boot.version>
-        <mybatis.version>3.5.1</mybatis.version>
+        <mybatis.version>3.5.6</mybatis.version>
         <mybatis-spring-boot.version>2.0.1</mybatis-spring-boot.version>
         <elasticsearch.version>7.1.1</elasticsearch.version>
         <lombok.version>1.18.8</lombok.version>
